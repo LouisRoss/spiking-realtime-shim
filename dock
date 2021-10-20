@@ -1,0 +1,12 @@
+#!/bin/bash
+echo $(pwd)
+docker container run \
+-it \
+--rm \
+--name=spiking-realtime-shim \
+-p 4001:4000 \
+-p 5003:5000 \
+-v "$(pwd)":/app \
+-v "$(pwd)"/../spiking-model-configuration/configuration/:/configuration \
+louisross/spiking-realtime-shim:1.0 \
+bash
