@@ -2,30 +2,34 @@ const net = require('net');
 
 var socket = null;
 
+const ConnectAttempt = (host, port) => {
+  console.log(`Connecting to ${host}:${port}`);
+  socket = net.connect(port, host, () =>{
+    console.log(`Connected to ${host}:${port}`);
+  });
+
+  socket.on('error', error => {
+    console.log(`Error ${error}, Closing socket connection to ${host}:${port}`);
+    if (socket) {
+      socket.destroy();
+    }
+
+    setTimeout(ConnectAttempt, 500, host, port);
+  });
+
+  socket.on('end', function() {
+    console.log('server disconnected');
+    setTimeout(ConnectAttempt, 500, host, port);
+  });
+}
+
 class SocketSender {
   constructor(host, port) {
     this.host = host;
     this.port = port;
 
-    this.ConnectAttempt = this.ConnectAttempt.bind(this);
-    setTimeout(this.ConnectAttempt, 500);
-  }
-
-  ConnectAttempt() {
-    console.log(`Connecting to ${this.host}:${this.port}`);
-    socket = net.connect(this.port, this.host, () =>{
-      console.log(`Connected to ${this.host}:${this.port}`);
-    });
-
-    console.log('Setting up error handler');
-    socket.on('error', error => {
-      console.log(`Error ${error}, Closing socket connection to ${this.host}:${this.port}`);
-      if (socket) {
-        socket.destroy();
-      }
-
-      setTimeout(this.ConnectAttempt, 500);
-    });
+    //this.ConnectAttempt = this.ConnectAttempt.bind(this);
+    setTimeout(ConnectAttempt, 500, host, port);
   }
 
   Send(spikes) {
