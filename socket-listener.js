@@ -2,19 +2,23 @@ const net = require('net');
 
 
 const HandleQuery = function(buffer) {
-  console.log(`Received request from client with ${buffer.length} bytes`);
+  //console.log(`Received request from client with ${buffer.length} bytes`);
   //console.log(buffer);
-
+  //var logLine = "Sensor socket injecting offsets ";
+  
   var spikes = new Array();
   const spikeCount = Math.floor((buffer.length - 2) / 8);
+  console.log(`Sensor socket injecting ${spikeCount} spikes`);
   // Adjust loop exit to ignore any fragments at the end of the buffer.
   for (var spikeOffset = 2; spikeOffset < buffer.length - 7; spikeOffset += 8) {
     const tick = buffer.readInt32LE(spikeOffset);
     const neuronIndex = buffer.readInt32LE(spikeOffset + 4);
     spikes.push([tick, neuronIndex]);
 
-    console.log(`Processing spike at tick ${tick} at neuron ${neuronIndex}`);
+    //console.log(`Processing spike at tick ${tick} at neuron ${neuronIndex}`);
+    //logLine += ` ${neuronIndex}`;
   }
+  //console.log(logLine);
 
   return spikes;
 }

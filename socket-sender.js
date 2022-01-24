@@ -1,38 +1,38 @@
 const net = require('net');
 
-var socket = null;
-
-const ConnectAttempt = (host, port) => {
-  console.log(`Connecting to ${host}:${port}`);
-  socket = net.connect(port, host, () =>{
-    console.log(`Connected to ${host}:${port}`);
-  });
-
-  socket.on('error', error => {
-    console.log(`Error ${error}, Closing socket connection to ${host}:${port}`);
-    if (socket) {
-      socket.destroy();
-    }
-
-    setTimeout(ConnectAttempt, 500, host, port);
-  });
-
-  socket.on('end', function() {
-    console.log('server disconnected');
-    setTimeout(ConnectAttempt, 500, host, port);
-  });
-}
 
 class SocketSender {
   constructor(host, port) {
     this.host = host;
     this.port = port;
+    this.socket = null;
 
-    //this.ConnectAttempt = this.ConnectAttempt.bind(this);
-    setTimeout(ConnectAttempt, 500, host, port);
+    this.ConnectAttempt = this.ConnectAttempt.bind(this);
+    setTimeout(this.ConnectAttempt, 500);
   }
 
-  Send(spikes) {
+  ConnectAttempt() {
+    //console.log(`Connecting to ${this.host}:${this.port}`);
+    this.socket = net.connect(this.port, this.host, () =>{
+      console.log(`Connected to ${this.host}:${this.port}`);
+    });
+  
+    this.socket.on('error', error => {
+      //console.log(`Error ${error}, Closing socket connection to ${host}:${port}`);
+      if (this.socket) {
+        this.socket.destroy();
+      }
+  
+      setTimeout(this.ConnectAttempt, 500);
+    });
+  
+    this.socket.on('end', () => {
+      console.log(`Server ${this.host}:${this.port} disconnected`);
+      setTimeout(this.ConnectAttempt, 500);
+    });
+  }
+  
+    Send(spikes) {
     var bufferHeader = Buffer.alloc(2);
     bufferHeader.writeUInt16LE(spikes.length);
 
@@ -46,7 +46,7 @@ class SocketSender {
     });
 
     var messageBuffer = Buffer.concat([bufferHeader, ...spikeBuffers], 2 + (8 * spikeBuffers.length));
-    socket.write(messageBuffer);
+    this.socket.write(messageBuffer);
     console.log(`Sent ${spikeBuffers.length} spikes to ${this.host}:${this.port}`);
   }
 }
