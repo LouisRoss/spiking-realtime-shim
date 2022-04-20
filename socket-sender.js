@@ -33,8 +33,8 @@ class SocketSender {
   }
   
     Send(spikes) {
-    var bufferHeader = Buffer.alloc(2);
-    bufferHeader.writeUInt16LE(spikes.length);
+    var bufferHeader = Buffer.alloc(4);
+    bufferHeader.writeUInt32LE(spikes.length);
 
     var spikeBuffers = [];
     spikes.forEach(spike => {
@@ -45,7 +45,7 @@ class SocketSender {
       spikeBuffers.push(bufferSpike);
     });
 
-    var messageBuffer = Buffer.concat([bufferHeader, ...spikeBuffers], 2 + (8 * spikeBuffers.length));
+    var messageBuffer = Buffer.concat([bufferHeader, ...spikeBuffers], 4 + (8 * spikeBuffers.length));
     this.socket.write(messageBuffer);
     console.log(`Sent ${spikeBuffers.length} spikes to ${this.host}:${this.port}`);
   }
